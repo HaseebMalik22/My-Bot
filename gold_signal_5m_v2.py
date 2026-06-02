@@ -200,10 +200,31 @@ def format_message(direction, info):
     )
 
 
+def get_current_price():
+    """Fetch current spot price for verification on startup."""
+    params = {
+        "symbol":  "XAU/USD",
+        "apikey":  TWELVEDATA_API_KEY,
+    }
+    r = requests.get("https://api.twelvedata.com/price", params=params, timeout=10)
+    data = r.json()
+    return float(data["price"])
+
+
 def main():
     log.info("=" * 50)
     log.info(f"  Gold Signal Bot - {TIMEFRAME_LABEL} Starting")
     log.info("=" * 50)
+
+    # ── Verify current price on startup ──────────────────
+    try:
+        current_price = get_current_price()
+        price_line = f"Live Price : <b>${current_price:,.2f}</b> (verify on TradingView)"
+        log.info(f"Startup price check: ${current_price:,.2f}")
+    except Exception as e:
+        price_line = f"Live Price : ⚠️ Could not fetch ({e})"
+        log.warning(f"Startup price fetch failed: {e}")
+    # ─────────────────────────────────────────────────────
 
     send_telegram(
         f"<b>Gold Signal Bot Started - {TIMEFRAME_LABEL}</b>\n"
@@ -211,8 +232,10 @@ def main():
         f"Instrument : XAUUSD\n"
         f"Timeframe  : {TIMEFRAME_LABEL}\n"
         f"Strategy   : EMA {EMA_FAST}/{EMA_MID}/{EMA_SLOW} + RSI + MACD\n"
-        f"Data       : Yahoo Finance (Free)\n"
+        f"Data       : TwelveData (Spot XAU/USD)\n"
         f"Mode       : Signal Only - No Trades\n"
+        f"------------------------\n"
+        f"{price_line}\n"
         f"------------------------\n"
         f"Watching for signals..."
     )

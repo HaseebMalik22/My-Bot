@@ -16,6 +16,7 @@ import requests
 import pandas as pd
 import yfinance as yf
 from datetime import datetime
+from signal_config import TWELVEDATA_API_KEY
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
@@ -60,13 +61,37 @@ def send_telegram(message: str):
 
 
 def get_candles():
-    df = yf.download("GC=F", period="5d", interval=TIMEFRAME, progress=False)
-    if df.empty:
-        raise ValueError("No data from Yahoo Finance")
-    df = df[["Open", "High", "Low", "Close"]].copy()
-    df.columns = ["open", "high", "low", "close"]
-    df = df.dropna().iloc[:-1]
-    log.info(f"Fetched {len(df)} candles. Last close: {round(float(df['close'].iloc[-1]), 2)}")
+    params = {
+        "symbol":     "XAU/USD",
+        "interval":   "5min",
+        "outputsize": 300,        # ~25 hours of 5m candles
+        "format":     "JSON",
+        "apikey":     TWELVEDATA_API_KEY,
+    }
+    r = requests.get(TWELVEDATA_URL, params=params, timeout=15)
+    data = r.json()
+
+    if data.get("status") == "error":
+        raise ValueError(f"TwelveData error: {data.get('message')}")
+
+    values = data.get("values")
+    if not values:
+        raise ValueError("No candle data returned from TwelveData")
+
+    df = pd.DataFrame(values)
+    df = df.rename(columns={
+        "datetime": "time",
+        "open":     "open",
+        "high":     "high",
+        "low":      "low",
+        "close":    "close",
+    })
+    df["time"]  = pd.to_datetime(df["time"])
+    df = df.set_index("time").sort_index()
+    df = df[["open", "high", "low", "close"]].astype(float)
+    df = df.dropna().iloc[:-1]   # drop last potentially incomplete candle
+
+    log.info(f"Fetched {len(df)} candles from TwelveData. Last close: {round(float(df['close'].iloc[-1]), 2)}")
     return df
 
 

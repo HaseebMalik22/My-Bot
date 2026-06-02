@@ -14,7 +14,7 @@ import io
 import logging
 import requests
 import pandas as pd
-from tradingview_ta import TA_Handler, Interval
+import yfinance as yf
 from datetime import datetime
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -60,33 +60,14 @@ def send_telegram(message: str):
 
 
 def get_candles():
-
-    symbols = [
-        ("XAUUSD", "OANDA"),
-        ("XAUUSD", "FOREXCOM"),
-        ("GOLD", "TVC"),
-    ]
-
-    for sym, exch in symbols:
-        try:
-            analysis = TA_Handler(
-                symbol=sym,
-                screener="forex",
-                exchange=exch,
-                interval=Interval.INTERVAL_5_MINUTES
-            ).get_analysis()
-
-            log.info(
-                f"SUCCESS -> {exch}:{sym} "
-                f"Price={analysis.indicators.get('close')}"
-            )
-
-            return analysis
-
-        except Exception as e:
-            log.error(f"FAILED -> {exch}:{sym} | {e}")
-
-    raise Exception("No TradingView symbol worked")
+    df = yf.download("GC=F", period="5d", interval=TIMEFRAME, progress=False)
+    if df.empty:
+        raise ValueError("No data from Yahoo Finance")
+    df = df[["Open", "High", "Low", "Close"]].copy()
+    df.columns = ["open", "high", "low", "close"]
+    df = df.dropna().iloc[:-1]
+    log.info(f"Fetched {len(df)} candles. Last close: {round(float(df['close'].iloc[-1]), 2)}")
+    return df
 
 
 def calc_ema(s, p): return s.ewm(span=p, adjust=False).mean()

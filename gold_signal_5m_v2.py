@@ -61,19 +61,32 @@ def send_telegram(message: str):
 
 def get_candles():
 
-    analysis = TA_Handler(
-        symbol="XAUUSD",
-        screener="forex",
-        exchange="OANDA",
-        interval=Interval.INTERVAL_5_MINUTES
-    ).get_analysis()
+    symbols = [
+        ("XAUUSD", "OANDA"),
+        ("XAUUSD", "FOREXCOM"),
+        ("GOLD", "TVC"),
+    ]
 
-    log.info(
-        f"TradingView Close: "
-        f"{analysis.indicators['close']}"
-    )
+    for sym, exch in symbols:
+        try:
+            analysis = TA_Handler(
+                symbol=sym,
+                screener="forex",
+                exchange=exch,
+                interval=Interval.INTERVAL_5_MINUTES
+            ).get_analysis()
 
-    return analysis
+            log.info(
+                f"SUCCESS -> {exch}:{sym} "
+                f"Price={analysis.indicators.get('close')}"
+            )
+
+            return analysis
+
+        except Exception as e:
+            log.error(f"FAILED -> {exch}:{sym} | {e}")
+
+    raise Exception("No TradingView symbol worked")
 
 
 def calc_ema(s, p): return s.ewm(span=p, adjust=False).mean()

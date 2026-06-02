@@ -31,7 +31,7 @@ from signal_config import (
 
 TIMEFRAME       = "5m"
 TIMEFRAME_LABEL = "5min"
-LOOP_INTERVAL   = 60
+LOOP_INTERVAL   = 240
 
 logging.basicConfig(
     level=logging.INFO,

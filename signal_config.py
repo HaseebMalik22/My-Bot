@@ -2,6 +2,8 @@ import os
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+TWELVEDATA_API_KEY = "2c2205137c4e4a25984cf3ed310f6f1e"  # free at twelvedata.com
+
 
 EMA_FAST = 8
 EMA_MID  = 21

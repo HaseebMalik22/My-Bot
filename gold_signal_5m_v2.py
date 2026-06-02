@@ -152,14 +152,21 @@ def get_signal(df):
     pf   = v(prev["ema_fast"])
     pm   = v(prev["ema_mid"])
 
+    # ── Crossover: fast crosses above/below mid (Pine: ta.crossover/crossunder)
     buy_cross  = pf <= pm and cf > cm
     sell_cross = pf >= pm and cf < cm
+
+    # ── Trend filter: price vs slow EMA (matches Pine: bullTrend / bearTrend)
     bull = cc > cs
     bear = cc < cs
-    buy_rsi  = cr > RSI_OS and cr < RSI_OB
-    sell_rsi = cr > RSI_OS and cr < RSI_OB
-    buy_macd  = cml > cms
-    sell_macd = cml < cms
+
+    # ── RSI: asymmetric exactly like Pine Script ──────────────
+    buy_rsi  = cr > 45 and cr < RSI_OB   # was: cr > RSI_OS
+    sell_rsi = cr < 55 and cr > RSI_OS   # was: cr < RSI_OB
+
+    # ── MACD: line vs signal AND histogram sign (matches Pine) ─
+    buy_macd  = cml > cms and cmh > 0    # was: cml > cms only
+    sell_macd = cml < cms and cmh < 0    # was: cml < cms only
 
     info = {
         "price":     round(cc, 2),

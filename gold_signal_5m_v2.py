@@ -2,7 +2,7 @@
 """
 ============================================================
   XAUUSD Gold Signal Bot — 5 MINUTE
-  Strategy  : EMA(8/21/50) + RSI(14) + MACD(12,26,9)
+  Strategy  : EMA(5/10/20) + RSI(14) + MACD(12,26,9)
   Data      : Yahoo Finance (FREE)
   Timeframe : 5-minute candles
 ============================================================

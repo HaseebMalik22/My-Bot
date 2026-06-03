@@ -30,7 +30,7 @@ from signal_config import (
 
 TIMEFRAME       = "5m"
 TIMEFRAME_LABEL = "5min"
-LOOP_INTERVAL   = 120
+LOOP_INTERVAL   = 60
 TWELVEDATA_URL  = "https://api.twelvedata.com/time_series"  # ✅ fix Bug 1
 
 logging.basicConfig(

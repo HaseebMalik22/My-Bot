@@ -42,12 +42,12 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ── Smart candle timer ────────────────────────────────────────
+# ── Smart candle timer — wakes up 15s BEFORE candle closes ───
 def seconds_to_next_candle():
     now = datetime.utcnow()
     seconds_past = (now.minute % 5) * 60 + now.second
-    seconds_left = 300 - seconds_past  # 300 = 5 minutes
-    return max(seconds_left, 10)       # minimum 10s buffer
+    seconds_left = 300 - seconds_past
+    return max(seconds_left - 15, 5)  # wake up 15s early
 # ─────────────────────────────────────────────────────────────
 
 
@@ -252,6 +252,16 @@ def main():
 
     while True:
         try:
+            # ── Sleep until 15s before next candle close ──────
+            wait = seconds_to_next_candle()
+            log.info(f"Next candle in {wait + 15}s — waking up in {wait}s...")
+            time.sleep(wait)
+
+            # ── Stand by for exact candle close ───────────────
+            log.info("⏳ Candle closing in 15s — standing by...")
+            time.sleep(15)
+
+            # ── Fetch + compute immediately after close ────────
             df           = compute_indicators(get_candles())
             bar_time     = str(df.index[-1])
             signal, info = get_signal(df)
@@ -280,12 +290,6 @@ def main():
             log.error("Error: " + str(e))
             time.sleep(30)
             continue
-
-        # ── Smart sleep: wake up exactly when next 5min candle closes ──
-        wait = seconds_to_next_candle()
-        log.info(f"Next candle in {wait}s, sleeping...")
-        time.sleep(wait)
-        # ───────────────────────────────────────────────────────────────
 
 
 if __name__ == "__main__":

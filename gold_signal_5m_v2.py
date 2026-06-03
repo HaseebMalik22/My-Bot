@@ -28,10 +28,8 @@ from signal_config import (
     ATR_LEN, ATR_SL_MULT, ATR_TP1_MULT, ATR_TP2_MULT,
 )
 
-TIMEFRAME       = "5m"
 TIMEFRAME_LABEL = "5min"
-LOOP_INTERVAL   = 60
-TWELVEDATA_URL  = "https://api.twelvedata.com/time_series"  # ✅ fix Bug 1
+TWELVEDATA_URL  = "https://api.twelvedata.com/time_series"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,6 +40,15 @@ logging.basicConfig(
     ]
 )
 log = logging.getLogger(__name__)
+
+
+# ── Smart candle timer ────────────────────────────────────────
+def seconds_to_next_candle():
+    now = datetime.utcnow()
+    seconds_past = (now.minute % 5) * 60 + now.second
+    seconds_left = 300 - seconds_past  # 300 = 5 minutes
+    return max(seconds_left, 10)       # minimum 10s buffer
+# ─────────────────────────────────────────────────────────────
 
 
 def send_telegram(message: str):
@@ -274,7 +281,11 @@ def main():
             time.sleep(30)
             continue
 
-        time.sleep(LOOP_INTERVAL)
+        # ── Smart sleep: wake up exactly when next 5min candle closes ──
+        wait = seconds_to_next_candle()
+        log.info(f"Next candle in {wait}s, sleeping...")
+        time.sleep(wait)
+        # ───────────────────────────────────────────────────────────────
 
 
 if __name__ == "__main__":

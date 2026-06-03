@@ -5,9 +5,9 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 TWELVEDATA_API_KEY = "2c2205137c4e4a25984cf3ed310f6f1e"  # free at twelvedata.com
 
 
-EMA_FAST = 5
-EMA_MID  = 10
-EMA_SLOW = 20
+EMA_FAST = 8
+EMA_MID  = 21
+EMA_SLOW = 50
 
 RSI_LEN = 14
 RSI_OB  = 70
